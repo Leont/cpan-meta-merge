@@ -12,9 +12,10 @@ has version => (
 	required => 1,
 );
 
-sub croaker {
-	my (undef, undef, $path) = @_;
-	croak "Can't merge attribute " . join '.', @{$path};
+sub identical {
+	my ($left, $right, $path) = @_;
+	croak "Can't merge attribute " . join '.', @{$path} unless $left eq $right;
+	return $left;
 }
 
 sub _merge {
@@ -59,40 +60,10 @@ sub uniq_map {
 	return $left;
 }
 
-my %default = (
-	abstract       => \&croaker,
-	authors        => \&concat_list,
-	dynamic_config => sub {
-		my ($left, $right) = @_;
-		return $left || $right;
-	},
-	generated_by => \&croaker,       # concat_string?
-	license      => \&concat_list,
-	'meta-spec'  => sub {
-		my ($left, $right) = @_;
-		croak 'Trying to merge differently versioned meta fragments' if $left->{version} != $right->{version};
-		return { %{$left}, %{$right} };
-	},
-	name           => \&croaker,
-	release_status => \&croaker,
-	version        => \&croaker,
-	description    => \&croaker,
-	keywords       => \&concat_list,
-	no_index       => { map { ( $_ => \&concat_list) } qw/file directory package namespace/ },
-	optional_features => \&uniq_map,
-	prereqs           => sub {
-		my ($left, $right) = map { CPAN::Meta::Prereqs->new($_) } @_[0,1];
-		return $left->with_merged_prereqs($right)->as_string_hash;
-	},
-	provides  => \&uniq_map,
-	resources => {
-		license => \&concat_list,
-		homepage => \&croaker,
-		bugtracker => \&uniq_map,
-		repository => \&uniq_map,
-	},
-	':default' => 1 ? \&croaker : sub {
-		my ($left, $right, $path) = @_;
+sub improvize {
+	my ($left, $right, $path) = @_;
+	my ($name) = reverse @{$path};
+	if ($name =~ /^x_/) {
 		if (ref($left) eq 'ARRAY') {
 			return concat_list($left, $right, $path);
 		}
@@ -100,9 +71,45 @@ my %default = (
 			return deep_merge($left, $right, $path);
 		}
 		else {
-			croak sprintf "Can't merge '%s'", join '.', @{$path};
+			return identical($left, $right, $path);
 		}
+	}
+	croak sprintf "Can't merge '%s'", join '.', @{$path};
+}
+
+my %default = (
+	abstract       => \&identical,
+	authors        => \&concat_list,
+	dynamic_config => sub {
+		my ($left, $right) = @_;
+		return $left || $right;
 	},
+	generated_by => \&identical,     # concat_string?
+	license      => \&concat_list,
+	'meta-spec'  => {
+		version => \&identical,
+		url     => \&identical
+	},
+	name              => \&identical,
+	release_status    => \&identical,
+	version           => \&identical,
+	description       => \&identical,
+	keywords          => \&concat_list,
+	no_index          => { map { ($_ => \&concat_list) } qw/file directory package namespace/ },
+	optional_features => \&uniq_map,
+	prereqs           => sub {
+		my ($left, $right) = map { CPAN::Meta::Prereqs->new($_) } @_[0,1];
+		return $left->with_merged_prereqs($right)->as_string_hash;
+	},
+	provides  => \&uniq_map,
+	resources => {
+		license    => \&concat_list,
+		homepage   => \&identical,
+		bugtracker => \&uniq_map,
+		repository => \&uniq_map,
+		':default' => \&improvize,
+	},
+	':default' => \&improvize,
 );
 
 has _mapping => (
@@ -121,7 +128,8 @@ my %coderef_for = (
 	concat_list => \&concat_list,
 	deep_merge  => \&deep_merge,
 	uniq_map    => \&uniq_map,
-	croak       => \&croaker,
+	identical   => \&identical,
+	improvize   => \&improvize,
 );
 
 sub _coerce_mapping {
