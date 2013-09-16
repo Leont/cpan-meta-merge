@@ -1,8 +1,9 @@
 package CPAN::Meta::Merge;
 
-use Scalar::Util qw/blessed/;
 use Carp qw/croak/;
 use CPAN::Meta::Prereqs;
+use List::MoreUtils qw/uniq/;
+use Scalar::Util qw/blessed/;
 
 use Moo 1.000008;
 
@@ -36,9 +37,9 @@ sub _merge {
 	return $current;
 }
 
-sub concat_list {
+sub set_addition {
 	my ($left, $right) = @_;
-	return [ @{$left}, @{$right} ];
+	return [ sort +uniq(@{$left}, @{$right}) ];
 }
 
 sub uniq_map {
@@ -59,7 +60,7 @@ sub improvize {
 	my ($name) = reverse @{$path};
 	if ($name =~ /^x_/) {
 		if (ref($left) eq 'ARRAY') {
-			return concat_list($left, $right, $path);
+			return set_addition($left, $right, $path);
 		}
 		elsif (ref($left) eq 'HASH') {
 			return uniq_map($left, $right, $path);
@@ -73,13 +74,13 @@ sub improvize {
 
 my %default = (
 	abstract       => \&identical,
-	authors        => \&concat_list,
+	authors        => \&set_addition,
 	dynamic_config => sub {
 		my ($left, $right) = @_;
 		return $left || $right;
 	},
 	generated_by => \&identical,     # concat_string?
-	license      => \&concat_list,
+	license      => \&set_addition,
 	'meta-spec'  => {
 		version => \&identical,
 		url     => \&identical
@@ -88,8 +89,8 @@ my %default = (
 	release_status    => \&identical,
 	version           => \&identical,
 	description       => \&identical,
-	keywords          => \&concat_list,
-	no_index          => { map { ($_ => \&concat_list) } qw/file directory package namespace/ },
+	keywords          => \&set_addition,
+	no_index          => { map { ($_ => \&set_addition) } qw/file directory package namespace/ },
 	optional_features => \&uniq_map,
 	prereqs           => sub {
 		my ($left, $right) = map { CPAN::Meta::Prereqs->new($_) } @_[0,1];
@@ -97,7 +98,7 @@ my %default = (
 	},
 	provides  => \&uniq_map,
 	resources => {
-		license    => \&concat_list,
+		license    => \&set_addition,
 		homepage   => \&identical,
 		bugtracker => \&uniq_map,
 		repository => \&uniq_map,
@@ -119,7 +120,7 @@ has _mapping => (
 );
 
 my %coderef_for = (
-	concat_list => \&concat_list,
+	set_addition => \&set_addition,
 	uniq_map    => \&uniq_map,
 	identical   => \&identical,
 	improvize   => \&improvize,
