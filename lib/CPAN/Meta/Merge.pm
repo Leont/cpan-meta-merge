@@ -3,7 +3,6 @@ package CPAN::Meta::Merge;
 use Scalar::Util qw/blessed/;
 use Carp qw/croak/;
 use CPAN::Meta::Prereqs;
-use Hash::Merge::Simple;
 
 use Moo 1.000008;
 
@@ -42,11 +41,6 @@ sub concat_list {
 	return [ @{$left}, @{$right} ];
 }
 
-sub deep_merge {
-	my ($left, $right) = @_;
-	return Hash::Merge::Simple::merge($left, $right);
-}
-
 sub uniq_map {
 	my ($left, $right, $path) = @_;
 	for my $key (keys %{$right}) {
@@ -68,7 +62,7 @@ sub improvize {
 			return concat_list($left, $right, $path);
 		}
 		elsif (ref($left) eq 'HASH') {
-			return deep_merge($left, $right, $path);
+			return uniq_map($left, $right, $path);
 		}
 		else {
 			return identical($left, $right, $path);
@@ -126,7 +120,6 @@ has _mapping => (
 
 my %coderef_for = (
 	concat_list => \&concat_list,
-	deep_merge  => \&deep_merge,
 	uniq_map    => \&uniq_map,
 	identical   => \&identical,
 	improvize   => \&improvize,
