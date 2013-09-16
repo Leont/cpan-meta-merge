@@ -79,7 +79,10 @@ my %default = (
 		my ($left, $right) = @_;
 		return $left || $right;
 	},
-	generated_by => \&identical,     # concat_string?
+	generated_by => sub {
+		my ($left, $right) = @_;
+		return $left eq $right ? $left : "$left, $right";
+	},
 	license      => \&set_addition,
 	'meta-spec'  => {
 		version => \&identical,
