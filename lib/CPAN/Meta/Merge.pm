@@ -74,7 +74,7 @@ sub improvize {
 
 my %default = (
 	abstract       => \&identical,
-	authors        => \&set_addition,
+	author         => \&set_addition,
 	dynamic_config => sub {
 		my ($left, $right) = @_;
 		return $left || $right;
