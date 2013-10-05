@@ -1,16 +1,12 @@
 package CPAN::Meta::Merge;
 
+use strict;
+use warnings;
+
 use Carp qw/croak/;
 use CPAN::Meta::Prereqs;
 use List::MoreUtils qw/uniq/;
 use Scalar::Util qw/blessed/;
-
-use Moo 1.000008;
-
-has version => (
-	is       => 'ro',
-	required => 1,
-);
 
 sub identical {
 	my ($left, $right, $path) = @_;
@@ -110,17 +106,15 @@ my %default = (
 	':default' => \&improvize,
 );
 
-has _mapping => (
-	is       => 'lazy',
-	init_arg => undef,
-	builder  => sub {
-		my $self = shift;
-		return { %default, %{ $self->_extra_mappings } };
-	},
-	coerce => sub {
-		return _coerce_mapping($_[0], []);
-	}
-);
+sub new {
+	my ($class, %arguments) = @_;
+	croak 'version required' if not exists $arguments{version};
+	my %mapping = ( %default, %{ $arguments{extra_mappings} } );
+	return bless {
+		version => $arguments{version},
+		mapping => _coerce_mapping(\%mapping, []),
+	}, $class;
+}
 
 my %coderef_for = (
 	set_addition => \&set_addition,
@@ -154,18 +148,12 @@ sub _coerce_mapping {
 	return \%ret;
 }
 
-has _extra_mappings => (
-	is       => 'ro',
-	init_arg => 'extra_mappings',
-	default  => sub { {} },
-);
-
 sub merge {
 	my ($self, @items) = @_;
 	my $current = {};
 	for my $next (@items) {
 		$next = $next->as_string_hash if blessed($next);
-		$current = _merge($current, $next, $self->_mapping, []);
+		$current = _merge($current, $next, $self->{mapping}, []);
 	}
 	return $current;
 }
