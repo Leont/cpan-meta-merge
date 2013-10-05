@@ -83,8 +83,8 @@ my %default = (
 		my ($left, $right) = @_;
 		return $left eq $right ? $left : "$left, $right";
 	},
-	license      => \&set_addition,
-	'meta-spec'  => {
+	license     => \&set_addition,
+	'meta-spec' => {
 		version => \&identical,
 		url     => \&identical
 	},
@@ -117,16 +117,16 @@ has _mapping => (
 		my $self = shift;
 		return { %default, %{ $self->_extra_mappings } };
 	},
-	coerce   => sub {
+	coerce => sub {
 		return _coerce_mapping($_[0], []);
 	}
 );
 
 my %coderef_for = (
 	set_addition => \&set_addition,
-	uniq_map    => \&uniq_map,
-	identical   => \&identical,
-	improvize   => \&improvize,
+	uniq_map     => \&uniq_map,
+	identical    => \&identical,
+	improvize    => \&improvize,
 );
 
 sub _coerce_mapping {
