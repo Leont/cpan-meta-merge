@@ -5,7 +5,6 @@ use warnings;
 
 use Carp qw/croak/;
 use CPAN::Meta::Prereqs;
-use List::MoreUtils qw/uniq/;
 use Scalar::Util qw/blessed/;
 
 sub identical {
@@ -31,6 +30,11 @@ sub _merge {
 		}
 	}
 	return $current;
+}
+
+sub uniq {
+	my %seen = ();
+	return grep { not $seen{$_}++ } @_;
 }
 
 sub set_addition {
