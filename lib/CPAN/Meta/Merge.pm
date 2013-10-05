@@ -173,3 +173,18 @@ sub merge {
 1;
 
 # ABSTRACT: Merging CPAN Meta fragments
+
+=head1 SYNOPSIS
+
+ my $merger = CPAN::Meta::Merge->new(version => 2.0);
+ my $meta = $merger->merge($base, @additional);
+
+=head1 DESCRIPTION
+
+=method new
+
+This creates a CPAN::Meta::Merge object. It takes one mandatory named argument, C<version>, declaring the version of the meta-spec that must be used for the merge. It can optionally take an C<extra_mappings> argument that allows one to add additional merg
+
+=method merge(@fragments)
+
+Merge all C<@fragments> together.
