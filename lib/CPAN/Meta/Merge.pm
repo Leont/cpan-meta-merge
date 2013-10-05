@@ -109,7 +109,16 @@ my %default = (
 sub new {
 	my ($class, %arguments) = @_;
 	croak 'version required' if not exists $arguments{version};
-	my %mapping = ( %default, %{ $arguments{extra_mappings} } );
+	my %mapping = %default;
+	my %extra = %{ $arguments{extra_mappings} || {} };
+	for my $key (keys %extra) {
+		if (ref($mapping{$key}) eq 'HASH') {
+			$mapping{$key} = { %{ $mapping{$key} }, %{ $extra{$key} } };
+		}
+		else {
+			$mapping{$key} = $extra{$key};
+		}
+	}
 	return bless {
 		version => $arguments{version},
 		mapping => _coerce_mapping(\%mapping, []),
