@@ -31,7 +31,7 @@ sub _merge {
 			$current->{$key} = $merger->($current->{$key}, $next->{$key}, [ @{$path}, $key ]);
 		}
 		else {
-			croak sprintf "Can't merge '%s'", join '.', @{$path}, $key;
+			croak sprintf "Can't merge unknown attribute '%s'", join '.', @{$path}, $key;
 		}
 	}
 	return $current;
