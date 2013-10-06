@@ -81,7 +81,7 @@ my %default = (
 	},
 	generated_by => sub {
 		my ($left, $right) = @_;
-		return $left eq $right ? $left : "$left, $right";
+		return join ', ', uniq(split(/, /, $left), split(/, /, $right));
 	},
 	license     => \&set_addition,
 	'meta-spec' => {

@@ -9,6 +9,7 @@ use CPAN::Meta::Merge;
 my %base = (
 	abstract => 'This is a test',
 	author => ['A.U. Thor'],
+	generated_by => 'Myself',
 	license => [ 'perl' ],
 	resources => {
 		license => [ 'http://dev.perl.org/licenses/' ],
@@ -30,6 +31,7 @@ my %base = (
 
 my %first = (
 	author => [ 'I.M. Poster' ],
+	generated_by => 'Some other guy',
 	license => [ 'bsd' ],
 	resources => {
 		license => [ 'http://opensource.org/licenses/bsd-license.php' ],
@@ -59,6 +61,7 @@ my %first = (
 my %first_expected = (
 	abstract => 'This is a test',
 	author => [ 'A.U. Thor', 'I.M. Poster' ],
+	generated_by => 'Myself, Some other guy',
 	license => [ 'bsd', 'perl' ],
 	resources => {
 		license => [ 'http://dev.perl.org/licenses/', 'http://opensource.org/licenses/bsd-license.php' ],
